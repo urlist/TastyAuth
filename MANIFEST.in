@@ -1,0 +1,5 @@
+include setup.py
+include example/server.py
+include example/settings.py.tmpl
+exclude example/settings.py
+

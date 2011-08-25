@@ -1,0 +1,4 @@
+syntax: glob
+TastyAuth.egg-info/*
+example/settings.py
+dist/*
