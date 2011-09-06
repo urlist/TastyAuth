@@ -365,6 +365,7 @@ class OpenIdMixin(GenericAuth):
         if email: user["email"] = email
         if locale: user["locale"] = locale
         if username: user["username"] = username
+        user['claimed_id'] = self.request.arguments.get('openid.claimed_id')[-1]
         callback(user)
 
 
@@ -1097,7 +1098,7 @@ class FacebookGraphMixin(OAuth2Mixin):
     _OAUTH_NO_CALLBACKS = False
 
     def get_authenticated_user(self, redirect_uri, client_id, client_secret,
-                              code, callback, extra_fields=None):
+                              code, callback, fields=None):
       """Handles the login for the Facebook user, returning a user object.
 
       Example usage::
@@ -1131,9 +1132,11 @@ class FacebookGraphMixin(OAuth2Mixin):
         "client_secret": client_secret,
       }
 
-      fields = set(['id', 'name', 'first_name', 'last_name',
-                    'locale', 'picture', 'link'])
-      if extra_fields: fields.update(extra_fields)
+      #fields = set(['id', 'name', 'first_name', 'last_name',
+      #              'locale', 'picture', 'link'])
+      #if extra_fields: fields.update(extra_fields)
+      if fields:
+          fields = fields.split(',')
 
       http.fetch(self._oauth_request_token_url(**args),
           self.async_callback(self._on_access_token, redirect_uri, client_id,
@@ -1152,13 +1155,21 @@ class FacebookGraphMixin(OAuth2Mixin):
           "expires": args.get("expires")
       }
 
-      self.facebook_request(
-          path="/me",
-          callback=self.async_callback(
-              self._on_get_user_info, callback, session, fields),
-          access_token=session["access_token"],
-          fields=",".join(fields)
-          )
+      if fields is not None:
+          self.facebook_request(
+              path="/me",
+              callback=self.async_callback(
+                  self._on_get_user_info, callback, session, fields),
+              access_token=session["access_token"],
+              fields=",".join(fields)
+              )
+      else:
+          self.facebook_request(
+              path="/me",
+              callback=self.async_callback(
+                  self._on_get_user_info, callback, session, fields),
+              access_token=session["access_token"],
+              )
 
 
     def _on_get_user_info(self, callback, session, fields, user):
@@ -1167,9 +1178,11 @@ class FacebookGraphMixin(OAuth2Mixin):
             return
 
         fieldmap = {}
-        for field in fields:
-            fieldmap[field] = user.get(field)
-
+        if fields is None:
+            fieldmap.update(user)
+        else:
+            for field in fields:
+                fieldmap[field] = user.get(field)
         fieldmap.update({"access_token": session["access_token"], "session_expires": session.get("expires")})
         callback(fieldmap)
 

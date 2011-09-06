@@ -1,2 +1,2 @@
-from auth import Twitter, Google, Facebook
+from auth import Twitter, Google, Facebook, UserDenied
 

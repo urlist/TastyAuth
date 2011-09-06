@@ -1,9 +1,17 @@
+from urlparse import urlparse
+import re
+
 from tornado.auth import TwitterMixin, GoogleMixin, FacebookGraphMixin
 from tornado.auth import HTTPRedirect
 
-class UserDenied(Exception): pass
+class AuthException(Exception): pass
+class UserDenied(AuthException): pass
+class NegotiationError(AuthException): pass
 
 class Twitter(object):
+
+    PROFILE_URL_BASE = 'https://twitter.com/'
+
     def __init__(self, key, secret, callback_url):
         self.settings = {
             'twitter_consumer_key': key,
@@ -29,13 +37,36 @@ class Twitter(object):
         container = {}
 
         def get_user_callback(user):
-            container['user'] = user
+            if not user:
+                raise NegotiationError()
+
+            container['attrs'] = user
+
+            profile_image_small = user['profile_image_url_https']
+            profile_image = re.sub('_normal(?=.\w+$)', '', profile_image_small)
+
+            container['parsed'] = {
+                'uid': user['id_str'],
+                'email': None,
+                'username': user['username'],
+                'screen_name': user['screen_name'],
+                'first_name': user['name'],
+                'last_name': None,
+                'language': user['lang'],
+                'profile_url': self.PROFILE_URL_BASE + user['username'],
+                'profile_image_small': profile_image_small,
+                'profile_image': profile_image,
+            }
 
         auth.get_authenticated_user(get_user_callback)
-        return container.get('user')
+        return container
 
 
 class Facebook(object):
+
+    PROFILE_IMAGE_URL = 'https://graph.facebook.com/{id}/picture?type=large'
+    PROFILE_IMAGE_SMALL_URL = 'https://graph.facebook.com/{id}/picture'
+
     def __init__(self, key, secret, callback_url, scope='email'):
         self.settings = {
             'facebook_api_key': key,
@@ -64,7 +95,22 @@ class Facebook(object):
 
         container = {}
         def get_user_callback(user):
-            container['user'] = user
+            if not user:
+                raise NegotiationError()
+
+            container['attrs'] = user
+            container['parsed'] = {
+                'uid': user['id'],
+                'email': user.get('email'),
+                'username': user['username'],
+                'screen_name': user['name'],
+                'first_name': user['first_name'],
+                'last_name': user['last_name'],
+                'language': user['locale'],
+                'profile_url': user['link'],
+                'profile_image_small': self.PROFILE_IMAGE_SMALL_URL.format(id=user['id']),
+                'profile_image': self.PROFILE_IMAGE_URL.format(id=user['id']),
+            }
 
         auth.get_authenticated_user(
                 redirect_uri=self.callback_url,
@@ -73,7 +119,7 @@ class Facebook(object):
                 code=auth.get_argument('code'),
                 callback=get_user_callback)
 
-        return container.get('user')
+        return container
     
     def api(self, environ, path, args, access_token):
         auth = FacebookGraphMixin(environ)
@@ -96,7 +142,7 @@ class Google(object):
         self.scope = scope
 
     def redirect(self, environ):
-        auth = GoogleMixin(environ)
+        auth = GoogleMixin(environ, self.settings)
         ax_attrs = self.scope.split(',')
         try:
             auth.authenticate_redirect(
@@ -106,17 +152,42 @@ class Google(object):
             return e.url
         return None
 
+#    def redirect2(self, environ):
+#        auth = GoogleMixin(environ, self.settings)
+#        ax_attrs = self.scope.split(',')
+#        try:
+#            auth.authorize_redirect(
+#                    "http://www.google.com/m8/feeds/ http://www.google.com/calendar/feeds/",
+#                    callback_uri=self.callback_url,
+#                    ax_attrs=ax_attrs)
+#        except HTTPRedirect, e:
+#            return e.url
+#        return None
+
     def get_user(self, environ):
-        auth = GoogleMixin(environ)
+        auth = GoogleMixin(environ, self.settings)
 
         if auth.get_argument('error', None):
             raise UserDenied()
 
         container = {}
         def get_user_callback(user):
-            container['user'] = user
+            if not user:
+                raise NegotiationError()
+
+            container['attrs'] = user
+            query_string = urlparse(user['claimed_id']).query
+            params = dict(param.split('=') for param in query_string.split('&'))
+            container['parsed'] = {
+                'uid': params['id'],
+                'email': user['email'],
+                'screen_name': user['first_name'],
+                'first_name': user['first_name'],
+                'last_name': user['last_name'],
+                'language': user['locale'],
+            }
 
         auth.get_authenticated_user(get_user_callback)
 
-        return container.get('user')
+        return container
 

@@ -2,8 +2,9 @@ import settings
 
 import bottle
 from bottle import route, redirect, request, response, debug, run
+from pprint import pformat
 
-from tastyauth import Twitter, Facebook, Google
+from tastyauth import Twitter, Facebook, Google, UserDenied
 
 twitter = Twitter(
             settings.TWITTER_KEY,
@@ -33,6 +34,9 @@ class CookieMonster(object):
     def delete_cookie(self, name):
         response.delete_cookie(name)
 
+def format(json):
+    return '<pre>%s</pre>' % pformat(json)
+
 @route('/')
 def home():
     return """<html>
@@ -55,8 +59,11 @@ def facebook_login():
 
 @route('/facebook/callback')
 def facebook_callback():
-    user = facebook.get_user(request.environ)
-    return user
+    try:
+        user = facebook.get_user(request.environ)
+    except UserDenied:
+        return "user denied"
+    return format(user)
 
 @route('/twitter/login')
 def twitter_login():
@@ -65,8 +72,11 @@ def twitter_login():
 
 @route('/twitter/callback')
 def twitter_callback():
-    user = twitter.get_user(request.environ, CookieMonster())
-    return user
+    try:
+        user = twitter.get_user(request.environ, CookieMonster())
+    except UserDenied:
+        return "user denied"
+    return format(user)
 
 
 @route('/google/login')
@@ -77,11 +87,18 @@ def google_login():
 
 @route('/google/callback')
 def google_callback():
-    user = google.get_user(request.environ)
-    return user
+    try:
+        user = google.get_user(request.environ)
+    except UserDenied:
+        return "user denied"
+    return format(user)
 
 
 debug(True)
 app = bottle.app()
 run(app=app)
+
+#if __name__ == '__main__':
+#    from paste import httpserver
+#    httpserver.serve(app, host='127.0.0.1', port='8080')
 
