@@ -181,10 +181,14 @@ class Google(object):
             container['parsed'] = {
                 'uid': params['id'],
                 'email': user['email'],
+                'username': None,
                 'screen_name': user['first_name'],
                 'first_name': user['first_name'],
                 'last_name': user['last_name'],
                 'language': user['locale'],
+                'profile_url': None,
+                'profile_image_small': None,
+                'profile_image': None
             }
 
         auth.get_authenticated_user(get_user_callback)
