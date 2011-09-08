@@ -1,8 +1,8 @@
 from urlparse import urlparse
 import re
 
-from tornado.auth import TwitterMixin, GoogleMixin, FacebookGraphMixin
-from tornado.auth import HTTPRedirect
+from tastyauth.tornado.auth import TwitterMixin, GoogleMixin, FacebookGraphMixin
+from tastyauth.tornado.auth import HTTPRedirect
 
 class AuthException(Exception): pass
 class UserDenied(AuthException): pass
