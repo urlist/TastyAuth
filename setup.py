@@ -8,9 +8,12 @@ setup(
     description='Extremely tasty social authentication, for Google, Twitter and Facebook.',
     author='Alberto Granzotto (vrde)',
     author_email='vrde@tastybrain.org',
-    url='https://hg.tastybra.in/private/tastyauth',
+    url='https://github.com/vrde/TastyAuth',
 
-    packages=['tastyauth'],
+    packages=[
+        'tastyauth',
+        'tastyauth.tornado'
+        ],
 
     install_requires=[
         'webob',
