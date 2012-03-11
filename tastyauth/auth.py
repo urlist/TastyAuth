@@ -26,6 +26,8 @@ class Twitter(object):
             auth.authorize_redirect(self.callback_url)
         except HTTPRedirect, e:
             return e.url
+        except KeyError, e:
+            raise NegotiationError
         return None
 
     def get_user(self, environ, cookie_monster):
