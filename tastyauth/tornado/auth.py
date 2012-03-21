@@ -96,7 +96,7 @@ class WebobRequestWrapper(object):
     @property
     def params(self):
         return self.inst.params
-    
+
     @property
     def arguments(self):
         return self.inst.str_GET.dict_of_lists()
@@ -113,7 +113,7 @@ class WebobResponseWrapper(object):
 
     def delete_cookie(self, name):
         self.inst.delete_cookie(name)
-        
+
 
 class GenericAuth(object):
     """Generic base class to emulate a tornado.Request
