@@ -265,6 +265,7 @@ class OpenIdMixin(GenericAuth):
         args["openid.mode"] = u"check_authentication"
         url = self._OPENID_ENDPOINT
         http = httpclient.AsyncHTTPClient()
+        log.debug("OpenID requesting {0} at uri {1}".format(args, url))
         http.fetch(url, self.async_callback(
             self._on_authentication_verified, callback),
             method="POST", body=urllib.urlencode(args))
