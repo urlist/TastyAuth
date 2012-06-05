@@ -1,0 +1,4 @@
+*.pyc
+example/settings.py
+TastyAuth.egg-info/
+env/
