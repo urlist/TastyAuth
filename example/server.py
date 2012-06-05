@@ -4,7 +4,7 @@ import bottle
 from bottle import route, redirect, request, response, debug, run
 from pprint import pformat
 
-from tastyauth import Twitter, Facebook, Google, UserDenied
+from tastyauth import Twitter, Facebook, Google, UserDenied, NegotiationError
 
 twitter = Twitter(
             settings.TWITTER_KEY,
@@ -23,6 +23,9 @@ google = Google(
             settings.GOOGLE_CALLBACK,
             settings.GOOGLE_SCOPE)
 
+mapping = {'twitter': twitter, 'facebook': facebook, 'google': google}
+
+
 class CookieMonster(object):
 
     def get_cookie(self, name, default=None):
@@ -34,14 +37,13 @@ class CookieMonster(object):
     def delete_cookie(self, name):
         response.delete_cookie(name)
 
-def format(json):
-    return '<pre>%s</pre>' % pformat(json)
+
 
 @route('/')
 def home():
     return """<html>
     <head>
-        <meta name="google-site-verification" content="%s" />
+        <meta name="google-site-verification" content="{0}" />
     </head>
     <body>
     <ul>
@@ -50,55 +52,40 @@ def home():
         <li><a href="/facebook/login">facebook</a></li>
     </ul>
     </body>
-</html>""" % settings.GOOGLE_SITE_VERIFICATION
+</html>""".format(settings.GOOGLE_SITE_VERIFICATION)
+
 
 @route('/facebook/login')
 def facebook_login():
     url = facebook.redirect(request.environ)
     redirect(url)
 
-@route('/facebook/callback')
-def facebook_callback():
-    try:
-        user = facebook.get_user(request.environ)
-    except UserDenied:
-        return "user denied"
-    return format(user)
 
 @route('/twitter/login')
 def twitter_login():
     url = twitter.redirect(request.environ, CookieMonster())
     redirect(url)
 
-@route('/twitter/callback')
-def twitter_callback():
-    try:
-        user = twitter.get_user(request.environ, CookieMonster())
-    except UserDenied:
-        return "user denied"
-    return format(user)
-
 
 @route('/google/login')
 def google_login():
     url = google.redirect(request.environ)
-    print 'redirecting to...', url
     redirect(url)
 
-@route('/google/callback')
-def google_callback():
+
+@route('/:provider/callback')
+def provider_callback(provider):
     try:
-        user = google.get_user(request.environ)
+        user = mapping[provider].get_user(request.environ)
     except UserDenied:
-        return "user denied"
-    return format(user)
+        return 'User denied'
+    except NegotiationError:
+        return 'Negotiation error, maybe expired stuff'
 
+    return '<pre>{0}</pre>'.format(pformat(user))
 
-debug(True)
-app = bottle.app()
-run(app=app)
-
-#if __name__ == '__main__':
-#    from paste import httpserver
-#    httpserver.serve(app, host='127.0.0.1', port='8080')
+if __name__ == '__main__':
+    debug(True)
+    app = bottle.app()
+    run(app=app)
 

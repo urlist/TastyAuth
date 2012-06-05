@@ -12,10 +12,11 @@ setup(
 
     packages=[
         'tastyauth',
-        'tastyauth.tornado'
+        'tastyauth.tornado',
         ],
 
     install_requires=[
+        'bottle',
         'webob',
     ]
 )

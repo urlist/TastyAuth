@@ -99,7 +99,7 @@ class WebobRequestWrapper(object):
 
     @property
     def arguments(self):
-        return self.inst.str_GET.dict_of_lists()
+        return self.inst.GET.dict_of_lists()
 
 class WebobResponseWrapper(object):
     def __init__(self, inst):
