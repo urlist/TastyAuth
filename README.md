@@ -78,7 +78,7 @@ or drop the bottle module somewhere in your `PYHONPATH`.
 Quick start
 -----------
 
-Clone the repo, `git clone git@github.com:twitter/bootstrap.git`,
+Clone the repo, `git clone git@github.com:vrde/TastyAuth.git`,
 or [download the latest release](https://github.com/vrde/TastyAuth/zipball/master).
 
 If you are using [virtualenv](http://www.virtualenv.org/) cd to the directory
