@@ -54,7 +54,7 @@ Quick start
 -----------
 
 Clone the repo, `git clone git@github.com:twitter/bootstrap.git`,
-or [download the latest release](https://github.com/twitter/bootstrap/zipball/master).
+or [download the latest release](https://github.com/vrde/TastyAuth/zipball/master).
 
 If you are using [virtualenv](http://www.virtualenv.org/) cd to the directory
 containing `setup.py` and install TastyAuth's dependencies with:
