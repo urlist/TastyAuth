@@ -16,7 +16,6 @@ setup(
     ],
 
     install_requires=[
-        'bottle',
         'webob',
     ],
 )

@@ -6,11 +6,13 @@ authentication schemes (read: Google, Twitter and Facebook auth).
 
 TastyAuth is designed to be framework agnostic: it just exposes plain
 functions that you can use *everywhere* WSGI is supported.
+The only hard dependency is [WebOb](http://www.webob.org/).
 
 
 Show me teh code
 ----------------
-A typical setup is the following:
+A typical setup is the following (I am using
+[Bottle](https://github.com/defnull/bottle) but you can use whatever you want)
 
 
     from bottle import route, redirect, request
@@ -41,8 +43,12 @@ A typical setup is the following:
         return '<pre>{0}</pre>'.format(pformat(user))
 
 
-You can find a working example under the `example` dir.
+You can find a working example under the `example` dir. If you want to run the
+example provided, do not forget to:
 
+    pip install bottle
+
+or drop the bottle module somewhere in your `PYHONPATH`.
 
 Quick start
 -----------
@@ -55,10 +61,7 @@ containing `setup.py` and install TastyAuth's dependencies with:
 
     pip install -e .
 
-Pip will install:
-
- * [WebOb](http://www.webob.org/)
- * [Bottle](https://github.com/defnull/bottle)
+Pip will install just [WebOb](http://www.webob.org/)
 
 
 Request a key for authenticating with:
