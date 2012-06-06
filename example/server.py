@@ -6,6 +6,9 @@ from pprint import pformat
 
 from tastyauth import Twitter, Facebook, Google, UserDenied, NegotiationError
 
+
+# auth managers setup, pretty straightforward
+
 twitter = Twitter(
             settings.TWITTER_KEY,
             settings.TWITTER_SECRET,
@@ -23,9 +26,11 @@ google = Google(
             settings.GOOGLE_CALLBACK,
             settings.GOOGLE_SCOPE)
 
+# this mapping will be used later
 mapping = {'twitter': twitter, 'facebook': facebook, 'google': google}
 
 
+# simple wrapper to let Bottle talk to the tastyauth managers
 class CookieMonster(object):
 
     def get_cookie(self, name, default=None):
@@ -63,6 +68,7 @@ def facebook_login():
 
 @route('/twitter/login')
 def twitter_login():
+    # twitter is the only one that needs cookies to authenticate the user
     url = twitter.redirect(request.environ, CookieMonster())
     redirect(url)
 
@@ -78,8 +84,10 @@ def provider_callback(provider):
     try:
         user = mapping[provider].get_user(request.environ)
     except UserDenied:
+        # the user refused to log
         return 'User denied'
     except NegotiationError:
+        # oops, something nasty happend
         return 'Negotiation error, maybe expired stuff'
 
     return '<pre>{0}</pre>'.format(pformat(user))
