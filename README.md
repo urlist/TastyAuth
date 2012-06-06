@@ -8,6 +8,31 @@ TastyAuth is designed to be framework agnostic: it just exposes plain
 functions that you can use *everywhere* WSGI is supported.
 The only hard dependency is [WebOb](http://www.webob.org/).
 
+The goal is to give to the developer an easy API to authenticate users and to
+retrieve some basic information about them: the `dict` returned by the
+`(twitter|facebook|google).get_user` method will always be structured as
+follows.
+
+
+    user['attrs'] { ... the raw data retrieved from the third party ... }
+
+    user['parsed'] = {
+
+        # user unique ID, this is valid for the third party, if you
+        # need to store it in your Model as a primary key prepend a
+        # string to identify the provider
+        'uid': 'UID',
+
+        'email': 'foo@example.org'
+        'username': 'foobar',
+        'screen_name': 'Foo Bar',
+        'first_name': 'Foo',
+        'last_name': 'Bar',
+        'language': 'it'
+        'profile_url': 'https://example.org/foobar',
+        'profile_image_small': 'https://example.org/foobar-small.png',
+        'profile_image': 'https://example.org/foobar.png',
+    }
 
 Show me teh code
 ----------------
